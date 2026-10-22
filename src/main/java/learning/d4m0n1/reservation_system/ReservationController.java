@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/reservations")
@@ -26,12 +25,7 @@ public class ReservationController {
             @PathVariable("id") Long id
     ) {
         log.info("Called getReservationById: id={}", id);
-        try {
-            return ResponseEntity.ok(reservationService.getReservationById(id));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(404)
-                    .build();
-        }
+        return ResponseEntity.ok(reservationService.getReservationById(id));
     }
 
     @GetMapping
@@ -65,14 +59,8 @@ public class ReservationController {
             @PathVariable Long id
     ) {
         log.info("Called method deleteReservation: id={}", id);
-        try {
-            reservationService.cancelReservation(id);
-            return ResponseEntity.ok()
+        return ResponseEntity.ok()
                     .build();
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(404)
-                    .build();
-        }
     }
 
     @PostMapping("/{id}/approve")
@@ -80,12 +68,7 @@ public class ReservationController {
             @PathVariable Long id
     ) {
         log.info("Called method approveReservation: id={}", id);
-        try {
-            return ResponseEntity.ok(reservationService.approveReservation(id));
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(404)
-                    .build();
-        }
+        return ResponseEntity.ok(reservationService.approveReservation(id));
     }
 
 }
