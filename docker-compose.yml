@@ -1,0 +1,8 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: my-postgres
+    environment:
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432"
