@@ -1,4 +1,4 @@
-package learning.d4m0n1.reservation_system;
+package learning.d4m0n1.reservation_system.web;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
