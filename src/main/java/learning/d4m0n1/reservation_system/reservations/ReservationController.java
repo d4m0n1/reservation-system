@@ -17,7 +17,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService) {
         this.reservationService = reservationService;
     }
 
@@ -31,18 +31,9 @@ public class ReservationController {
 
     @GetMapping
     public ResponseEntity<List<Reservation>> getAllReservations(
-            @RequestParam(name = "roomId", required = false) Long roomId,
-            @RequestParam(name = "userId", required = false) Long userId,
-            @RequestParam(name = "pageSize", required = false) Integer pageSize,
-            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+            @Valid ReservationSearchFilter filter
     ) {
         log.info("Called getAllReservations");
-        var filter = new ReservationSearchFilter(
-                roomId,
-                userId,
-                pageSize,
-                pageNumber
-        );
         return ResponseEntity.ok(reservationService.searchAllByFilter(filter));
     }
 
@@ -66,11 +57,11 @@ public class ReservationController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}/cancel")
-    public ResponseEntity<Void> deleteReservation(
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelReservation(
             @PathVariable Long id
     ) {
-        log.info("Called method deleteReservation: id={}", id);
+        log.info("Called method cancelReservation: id={}", id);
         reservationService.cancelReservation(id);
         return ResponseEntity.ok()
                     .build();

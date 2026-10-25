@@ -1,7 +1,9 @@
 package learning.d4m0n1.reservation_system.reservations;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,12 +41,18 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
     @Query("""
         SELECT r FROM ReservationEntity r
                 WHERE (:roomId IS NULL OR r.roomId = :roomId)
-                AND (:roomId IS NULL OR r.userId = :userId)
+                AND (:userId IS NULL OR r.userId = :userId)
         """)
     List<ReservationEntity> searchAllByFilter(
-            Long roomId,
-            Long userId,
+            @Param("roomId") Long roomId,
+            @Param("userId") Long userId,
             Pageable pageable
     );
+
+    // Для блокировки других записей, пока текущая не закоммитится
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM ReservationEntity r WHERE r.roomId = :roomId")
+    List<ReservationEntity> lockAllByRoomId(@Param("roomId") Long roomId);
+    // Spring Data требует соответствующее возвращаемое значение, поэтому List есть, хоть и не используется
 
 }

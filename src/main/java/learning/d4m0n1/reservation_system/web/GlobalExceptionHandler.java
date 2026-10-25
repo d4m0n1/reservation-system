@@ -3,19 +3,24 @@ package learning.d4m0n1.reservation_system.web;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
 
 @ControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private final static Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // Для непредвиденных ошибок
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(
             Exception e
@@ -24,7 +29,7 @@ public class GlobalExceptionHandler {
 
         var errorDto = new ErrorResponseDto(
                 "Internal Server Error",
-                e.getMessage(),
+                "Произошла внутренняя ошибка сервера.",
                 LocalDateTime.now()
         );
 
@@ -37,7 +42,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleEntityNotFound(
             EntityNotFoundException e
     ) {
-        log.error("Handle EntityNotFoundException", e);
+        log.warn("Handle EntityNotFoundException: {}", e.getMessage());
 
         var errorDto = new ErrorResponseDto(
                 "Entity Not Found",
@@ -53,12 +58,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(exception = {
             IllegalArgumentException.class,
             IllegalStateException.class,
-            MethodArgumentNotValidException.class
+            MethodArgumentTypeMismatchException.class,
     })
     public ResponseEntity<ErrorResponseDto> handleBadRequest(
             Exception e
     ) {
-        log.error("Handle handleBadRequest", e);
+        log.warn("Handle handleBadRequest: {}", e.getMessage());
 
         var errorDto = new ErrorResponseDto(
                 "Bad Request",
@@ -69,6 +74,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorDto);
+    }
+
+    // Для ошибок, проверяемых самим spring boot
+    @Override
+    protected ResponseEntity<Object> handleExceptionInternal(
+            Exception ex,
+            Object body,
+            HttpHeaders headers,
+            HttpStatusCode statusCode,
+            WebRequest request
+    ) {
+        log.warn("Handle Spring exception: {}", ex.getMessage());
+
+        var errorDto = new ErrorResponseDto(
+                HttpStatus.valueOf(statusCode.value()).getReasonPhrase(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(statusCode).body(errorDto);
     }
 
 }

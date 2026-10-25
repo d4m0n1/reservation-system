@@ -4,12 +4,12 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/reservation/availability")
+@RequestMapping("/reservations/availability")
 public class ReservationAvailabilityController {
 
     private static final Logger log = LoggerFactory.getLogger(ReservationAvailabilityController.class);
@@ -20,7 +20,7 @@ public class ReservationAvailabilityController {
         this.service = service;
     }
 
-    @PostMapping("/check")
+    @GetMapping("/check")
     ResponseEntity<CheckAvailabilityResponse> checkAvailability(
             @Valid CheckAvailabilityRequest request
     ) {
@@ -29,16 +29,13 @@ public class ReservationAvailabilityController {
                 request.roomId(), request.startDate(), request.endDate()
         );
 
-        var message = isAvailable
-                ? "room available to reservation"
-                : "room not available to reservation";
         var status = isAvailable
                 ? AvailabilityStatus.AVAILABLE
                 : AvailabilityStatus.RESERVED;
 
         return ResponseEntity
-                .status(200)
-                .body(new CheckAvailabilityResponse(message, status));
+                .ok()
+                .body(new CheckAvailabilityResponse(status));
     }
 
 }

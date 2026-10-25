@@ -27,30 +27,21 @@ public class ReservationService {
         this.availabilityService = availabilityService;
     }
 
+    @Transactional(readOnly = true)
     public Reservation getReservationById(
             Long id
     ) {
-
-        ReservationEntity reservationEntity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Not found reservation by id = " + id
-                ));
-
+        var reservationEntity = findReservation(id);
         return mapper.toDomain(reservationEntity);
-
     }
 
+    @Transactional(readOnly = true)
     public List<Reservation> searchAllByFilter(
             ReservationSearchFilter filter
     ) {
-        int pageSize = filter.pageSize() != null
-                ? filter.pageSize() : 10;
-        int pageNumber = filter.pageNumber() != null
-                ? filter.pageNumber() : 0;
-
         var pageable = Pageable
-                .ofSize(pageSize)
-                .withPage(pageNumber);
+                .ofSize(filter.pageSize())
+                .withPage(filter.pageNumber());
 
         List<ReservationEntity> allEntities = repository.searchAllByFilter(
                 filter.roomId(),
@@ -63,14 +54,8 @@ public class ReservationService {
                 .toList();
     }
 
+    @Transactional
     public Reservation createReservation(Reservation reservationToCreate) {
-        if (reservationToCreate.status() != null) {
-            throw new IllegalArgumentException("Status should by empty");
-        }
-        if (!reservationToCreate.endDate().isAfter(reservationToCreate.startDate())) {
-            throw new IllegalArgumentException("Start date must be 1 day earlier than end date");
-        }
-
         var entityToSave = mapper.toEntity(reservationToCreate);
         entityToSave.setStatus(ReservationStatus.PENDING);
 
@@ -78,19 +63,16 @@ public class ReservationService {
         return mapper.toDomain(savedEntity);
     }
 
+    @Transactional
     public Reservation updateReservation(
             Long id,
             Reservation reservationToUpdate
     ) {
-        var reservationEntity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Not found reservation by id = " + id));
+        var reservationEntity = findReservation(id);
 
         if (reservationEntity.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalStateException("Cannot modify reservation status="
                     + reservationEntity.getStatus());
-        }
-        if (!reservationToUpdate.endDate().isAfter(reservationToUpdate.startDate())) {
-            throw new IllegalArgumentException("Start date must be 1 day earlier than end date");
         }
 
         var reservationToSave = mapper.toEntity(reservationToUpdate);
@@ -103,8 +85,7 @@ public class ReservationService {
 
     @Transactional
     public void cancelReservation(Long id) {
-        var reservation = repository.findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("Not found reservation by id = " + id));
+        var reservation = findReservation(id);
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalStateException("Cannot cancel reservation status="
                     + reservation.getStatus());
@@ -113,9 +94,11 @@ public class ReservationService {
         log.info("Successfully cancelled reservation: id={}", id);
     }
 
+    @Transactional
     public Reservation approveReservation(Long id) {
-        var reservationEntity = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Not found reservation by id = " + id));
+        var reservationEntity = findReservation(id);
+
+        repository.lockAllByRoomId(reservationEntity.getRoomId()); // Блокировка
 
         if (reservationEntity.getStatus() != ReservationStatus.PENDING) {
             throw new IllegalStateException("Cannot approve reservation status="
@@ -133,11 +116,16 @@ public class ReservationService {
         }
 
         reservationEntity.setStatus(ReservationStatus.APPROVED);
-        repository.save(reservationEntity);
 
         return mapper.toDomain(reservationEntity);
     }
 
+    private ReservationEntity findReservation(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Not found reservation by id = " + id
+                ));
+    }
 
 
 
