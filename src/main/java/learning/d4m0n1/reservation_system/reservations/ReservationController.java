@@ -63,8 +63,7 @@ public class ReservationController {
     ) {
         log.info("Called method cancelReservation: id={}", id);
         reservationService.cancelReservation(id);
-        return ResponseEntity.ok()
-                    .build();
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/approve")
