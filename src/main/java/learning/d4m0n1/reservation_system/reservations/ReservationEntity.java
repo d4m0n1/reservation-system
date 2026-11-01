@@ -29,6 +29,10 @@ public class ReservationEntity {
     @Column(name = "status", nullable = false)
     private ReservationStatus status;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     public ReservationEntity() {
     }
 

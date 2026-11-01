@@ -3,6 +3,7 @@ package learning.d4m0n1.reservation_system.web;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -52,6 +53,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(errorDto);
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponseDto> handleOptimisticLock(
+            OptimisticLockingFailureException e
+    ) {
+        log.warn("Handle OptimisticLockingFailureException: {}", e.getMessage());
+
+        var errorDto = new ErrorResponseDto(
+                "Conflict",
+                "Бронь была изменена другим запросом, повторите попытку.",
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
                 .body(errorDto);
     }
 

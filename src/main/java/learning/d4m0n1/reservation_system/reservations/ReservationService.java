@@ -75,12 +75,12 @@ public class ReservationService {
                     + reservationEntity.getStatus());
         }
 
-        var reservationToSave = mapper.toEntity(reservationToUpdate);
-        reservationToSave.setStatus(ReservationStatus.PENDING);
-        reservationToSave.setId(reservationEntity.getId());
+        reservationEntity.setUserId(reservationToUpdate.userId());
+        reservationEntity.setRoomId(reservationToUpdate.roomId());
+        reservationEntity.setStartDate(reservationToUpdate.startDate());
+        reservationEntity.setEndDate(reservationToUpdate.endDate());
 
-        var updatedReservation = repository.save(reservationToSave);
-        return mapper.toDomain(updatedReservation);
+        return mapper.toDomain(reservationEntity);
     }
 
     @Transactional
@@ -90,7 +90,7 @@ public class ReservationService {
             throw new IllegalStateException("Cannot cancel reservation status="
                     + reservation.getStatus());
         }
-        repository.setStatus(id, ReservationStatus.CANCELLED);
+        reservation.setStatus(ReservationStatus.CANCELLED);
         log.info("Successfully cancelled reservation: id={}", id);
     }
 
