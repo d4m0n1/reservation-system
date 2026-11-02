@@ -4,7 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import learning.d4m0n1.reservation_system.reservations.availability.ReservationAvailabilityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +40,11 @@ public class ReservationService {
     public List<Reservation> searchAllByFilter(
             ReservationSearchFilter filter
     ) {
-        var pageable = Pageable
-                .ofSize(filter.pageSize())
-                .withPage(filter.pageNumber());
+        var pageable = PageRequest.of(
+                filter.pageNumber(),
+                filter.pageSize(),
+                Sort.by("id")
+        );
 
         List<ReservationEntity> allEntities = repository.searchAllByFilter(
                 filter.roomId(),
