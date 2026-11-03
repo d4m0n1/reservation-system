@@ -8,6 +8,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
@@ -15,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -73,9 +76,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorDto);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleConflict(
+            IllegalStateException e
+    ) {
+        log.warn("Handle IllegalStateException: {}", e.getMessage());
+
+        var errorDto = new ErrorResponseDto(
+                "Conflict",
+                e.getMessage(),
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(errorDto);
+    }
+
     @ExceptionHandler(exception = {
             IllegalArgumentException.class,
-            IllegalStateException.class,
             MethodArgumentTypeMismatchException.class,
     })
     public ResponseEntity<ErrorResponseDto> handleBadRequest(
@@ -92,6 +111,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(errorDto);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request
+    ) {
+        var details = ex.getBindingResult().getAllErrors().stream()
+                .map(error -> error instanceof FieldError fieldError
+                        ? fieldError.getField() + ": " + fieldError.getDefaultMessage()
+                        : error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+
+        log.warn("Handle validation error: {}", details);
+
+        var errorDto = new ErrorResponseDto(
+                "Bad Request",
+                details,
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(status).body(errorDto);
     }
 
     // Для ошибок, проверяемых самим spring boot
