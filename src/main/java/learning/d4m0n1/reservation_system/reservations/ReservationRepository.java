@@ -1,6 +1,7 @@
 package learning.d4m0n1.reservation_system.reservations;
 
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -31,7 +32,7 @@ public interface ReservationRepository extends JpaRepository<ReservationEntity, 
                 WHERE (:roomId IS NULL OR r.roomId = :roomId)
                 AND (:userId IS NULL OR r.userId = :userId)
         """)
-    List<ReservationEntity> searchAllByFilter(
+    Page<ReservationEntity> searchAllByFilter(
             @Param("roomId") Long roomId,
             @Param("userId") Long userId,
             Pageable pageable

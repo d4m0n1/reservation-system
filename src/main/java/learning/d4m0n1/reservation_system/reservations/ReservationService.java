@@ -4,12 +4,11 @@ import jakarta.persistence.EntityNotFoundException;
 import learning.d4m0n1.reservation_system.reservations.availability.ReservationAvailabilityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ReservationService {
@@ -37,7 +36,7 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Reservation> searchAllByFilter(
+    public Page<Reservation> searchAllByFilter(
             ReservationSearchFilter filter
     ) {
         var pageable = PageRequest.of(
@@ -46,15 +45,11 @@ public class ReservationService {
                 Sort.by("id")
         );
 
-        List<ReservationEntity> allEntities = repository.searchAllByFilter(
+        return repository.searchAllByFilter(
                 filter.roomId(),
                 filter.userId(),
                 pageable
-        );
-
-        return allEntities.stream()
-                .map(mapper::toDomain)
-                .toList();
+        ).map(mapper::toDomain);
     }
 
     @Transactional

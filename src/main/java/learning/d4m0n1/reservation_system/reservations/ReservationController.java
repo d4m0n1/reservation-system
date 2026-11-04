@@ -1,13 +1,12 @@
 package learning.d4m0n1.reservation_system.reservations;
 
 import jakarta.validation.Valid;
+import learning.d4m0n1.reservation_system.web.PageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/reservations")
@@ -30,11 +29,11 @@ public class ReservationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Reservation>> getAllReservations(
+    public ResponseEntity<PageResponse<Reservation>> getAllReservations(
             @Valid ReservationSearchFilter filter
     ) {
         log.info("Called getAllReservations");
-        return ResponseEntity.ok(reservationService.searchAllByFilter(filter));
+        return ResponseEntity.ok(PageResponse.from(reservationService.searchAllByFilter(filter)));
     }
 
     @PostMapping
