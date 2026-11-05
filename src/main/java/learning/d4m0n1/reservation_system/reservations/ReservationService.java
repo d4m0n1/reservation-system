@@ -53,7 +53,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation createReservation(Reservation reservationToCreate) {
+    public Reservation createReservation(ReservationRequest reservationToCreate) {
         var entityToSave = mapper.toEntity(reservationToCreate);
         entityToSave.setStatus(ReservationStatus.PENDING);
 
@@ -64,7 +64,7 @@ public class ReservationService {
     @Transactional
     public Reservation updateReservation(
             Long id,
-            Reservation reservationToUpdate
+            ReservationRequest reservationToUpdate
     ) {
         var reservationEntity = findReservation(id);
 

@@ -38,7 +38,7 @@ public class ReservationController {
 
     @PostMapping
     public ResponseEntity<Reservation> createReservation(
-            @RequestBody @Valid Reservation reservationToCreate
+            @RequestBody @Valid ReservationRequest reservationToCreate
     ) {
         log.info("Called createReservation");
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -48,7 +48,7 @@ public class ReservationController {
     @PutMapping("/{id}")
     public ResponseEntity<Reservation> updateReservation(
             @PathVariable("id") Long id,
-            @RequestBody @Valid Reservation reservationToUpdate
+            @RequestBody @Valid ReservationRequest reservationToUpdate
     ) {
         log.info("Called method updateReservation: id={}, " +
                 "reservationToUpdate={}", id, reservationToUpdate);

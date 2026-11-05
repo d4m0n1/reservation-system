@@ -20,15 +20,15 @@ public class ReservationMapper {
     }
 
     public ReservationEntity toEntity(
-            Reservation reservation
+            ReservationRequest request
     ) {
         return new ReservationEntity(
-                reservation.id(),
-                reservation.userId(),
-                reservation.roomId(),
-                reservation.startDate(),
-                reservation.endDate(),
-                reservation.status()
+                null,
+                request.userId(),
+                request.roomId(),
+                request.startDate(),
+                request.endDate(),
+                null
         );
     }
 
