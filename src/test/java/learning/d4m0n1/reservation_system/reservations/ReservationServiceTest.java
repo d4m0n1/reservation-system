@@ -1,6 +1,5 @@
 package learning.d4m0n1.reservation_system.reservations;
 
-import jakarta.persistence.EntityNotFoundException;
 import learning.d4m0n1.reservation_system.reservations.availability.ReservationAvailabilityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +64,7 @@ class ReservationServiceTest {
         when(availabilityService.isReservationAvailable(any(), any(), any())).thenReturn(false);
 
         assertThatThrownBy(() -> service.approveReservation(1L))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(ReservationConflictException.class);
         assertThat(entity.getStatus()).isEqualTo(ReservationStatus.PENDING);
     }
 
@@ -75,7 +74,7 @@ class ReservationServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
         assertThatThrownBy(() -> service.approveReservation(1L))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(ReservationConflictException.class);
     }
 
     @Test
@@ -83,7 +82,7 @@ class ReservationServiceTest {
         when(repository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getReservationById(99L))
-                .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(ReservationNotFoundException.class);
     }
 
     @Test
@@ -102,7 +101,7 @@ class ReservationServiceTest {
         when(repository.findById(1L)).thenReturn(Optional.of(entity));
 
         assertThatThrownBy(() -> service.cancelReservation(1L))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(ReservationConflictException.class);
         assertThat(entity.getStatus()).isEqualTo(ReservationStatus.APPROVED);
     }
 

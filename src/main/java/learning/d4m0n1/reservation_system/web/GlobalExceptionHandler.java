@@ -1,6 +1,7 @@
 package learning.d4m0n1.reservation_system.web;
 
-import jakarta.persistence.EntityNotFoundException;
+import learning.d4m0n1.reservation_system.reservations.ReservationConflictException;
+import learning.d4m0n1.reservation_system.reservations.ReservationNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -42,11 +43,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorDto);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> handleEntityNotFound(
-            EntityNotFoundException e
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleNotFound(
+            ReservationNotFoundException e
     ) {
-        log.warn("Handle EntityNotFoundException: {}", e.getMessage());
+        log.warn("Handle ReservationNotFoundException: {}", e.getMessage());
 
         var errorDto = new ErrorResponseDto(
                 "Entity Not Found",
@@ -76,11 +77,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorDto);
     }
 
-    @ExceptionHandler(IllegalStateException.class)
+    @ExceptionHandler(ReservationConflictException.class)
     public ResponseEntity<ErrorResponseDto> handleConflict(
-            IllegalStateException e
+            ReservationConflictException e
     ) {
-        log.warn("Handle IllegalStateException: {}", e.getMessage());
+        log.warn("Handle ReservationConflictException: {}", e.getMessage());
 
         var errorDto = new ErrorResponseDto(
                 "Conflict",
@@ -93,12 +94,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(errorDto);
     }
 
-    @ExceptionHandler(exception = {
-            IllegalArgumentException.class,
-            MethodArgumentTypeMismatchException.class,
-    })
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleBadRequest(
-            Exception e
+            MethodArgumentTypeMismatchException e
     ) {
         log.warn("Handle handleBadRequest: {}", e.getMessage());
 

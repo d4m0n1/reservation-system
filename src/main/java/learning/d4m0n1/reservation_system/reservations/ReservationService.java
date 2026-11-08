@@ -1,6 +1,5 @@
 package learning.d4m0n1.reservation_system.reservations;
 
-import jakarta.persistence.EntityNotFoundException;
 import learning.d4m0n1.reservation_system.reservations.availability.ReservationAvailabilityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class ReservationService {
         var reservationEntity = findReservation(id);
 
         if (reservationEntity.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Cannot modify reservation status="
+            throw new ReservationConflictException("Cannot modify reservation status="
                     + reservationEntity.getStatus());
         }
 
@@ -85,7 +84,7 @@ public class ReservationService {
     public void cancelReservation(Long id) {
         var reservation = findReservation(id);
         if (reservation.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Cannot cancel reservation status="
+            throw new ReservationConflictException("Cannot cancel reservation status="
                     + reservation.getStatus());
         }
         reservation.setStatus(ReservationStatus.CANCELLED);
@@ -99,7 +98,7 @@ public class ReservationService {
         repository.lockAllByRoomId(reservationEntity.getRoomId()); // Блокировка
 
         if (reservationEntity.getStatus() != ReservationStatus.PENDING) {
-            throw new IllegalStateException("Cannot approve reservation status="
+            throw new ReservationConflictException("Cannot approve reservation status="
                     + reservationEntity.getStatus());
         }
 
@@ -110,7 +109,7 @@ public class ReservationService {
         );
 
         if (!isAvailableToApprove) {
-            throw new IllegalStateException("Cannot approve reservation because of conflict");
+            throw new ReservationConflictException("Cannot approve reservation because of conflict");
         }
 
         reservationEntity.setStatus(ReservationStatus.APPROVED);
@@ -120,9 +119,7 @@ public class ReservationService {
 
     private ReservationEntity findReservation(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Not found reservation by id = " + id
-                ));
+                .orElseThrow(() -> new ReservationNotFoundException(id));
     }
 
 
